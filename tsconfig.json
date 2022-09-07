@@ -17,6 +17,7 @@
     "strictFunctionTypes": true,
     "noImplicitThis": true,
     "skipLibCheck": true,
+    "esModuleInterop": true,
     "types": ["@types/node"]
   },
   "include": ["./**/*"],
