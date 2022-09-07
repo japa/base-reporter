@@ -1,6 +1,6 @@
 {
   "name": "@japa/base-reporter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Base reporter to create customized testing reporters for Japa",
   "type": "commonjs",
   "main": "./build/index.js",
