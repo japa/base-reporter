@@ -18,10 +18,11 @@ yarn add @japa/base-reporter
 ```ts
 import { BaseReporter } from '@japa/base-reporter'
 
-class SpecReporter extends BaseReporter {}
+class MyReporter extends BaseReporter {}
 
-export const reporterFn = (runner, emitter) => {
-  return new SpecReporter().boot(runner, emitter)
+export const reporterFn = (myReporterOptions = {}) => {
+  const myReporter = new MyReporter(myReporterOptions)
+  return myReporter.boot.bind(reporter)
 }
 ```
 
