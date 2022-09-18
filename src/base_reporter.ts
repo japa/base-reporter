@@ -88,7 +88,7 @@ export abstract class BaseReporter {
   async printSummary(summary: ReturnType<Runner<any>['getSummary']>) {
     console.log('')
 
-    if (summary.aggregates.total === 0) {
+    if (summary.aggregates.total === 0 && !summary.hasError) {
       console.log(logger.colors.bgYellow().black(' NO TESTS EXECUTED '))
       return
     }
