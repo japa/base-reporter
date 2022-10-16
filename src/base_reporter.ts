@@ -61,10 +61,8 @@ export abstract class BaseReporter {
   /**
    * Print the aggregate count
    */
-  private printAggregate(label: string, count: number, whitespaceLength: number) {
-    if (count) {
-      console.log(logger.colors.dim(`${label.padEnd(whitespaceLength + 2)} : ${count}`))
-    }
+  private printKeyValuePair(key: string, value: string, whitespaceLength: number) {
+    console.log(`${logger.colors.dim(`${key.padEnd(whitespaceLength + 2)} : `)}${value}`)
   }
 
   /**
@@ -83,38 +81,56 @@ export abstract class BaseReporter {
   protected async end(_: RunnerEndNode) {}
 
   /**
-   * Print tests summary
+   * Pretty print aggregates
    */
-  async printSummary(summary: ReturnType<Runner<any>['getSummary']>) {
-    console.log('')
+  private printAggregates(summary: ReturnType<Runner<any>['getSummary']>) {
+    const [tests, time]: string[][] = [[], []]
 
-    if (summary.aggregates.total === 0 && !summary.hasError) {
-      console.log(logger.colors.bgYellow().black(' NO TESTS EXECUTED '))
-      return
+    /**
+     * Set value for time row
+     */
+    time.push(logger.colors.dim(ms(summary.duration)))
+
+    /**
+     * Set value for tests row
+     */
+    if (summary.aggregates.passed) {
+      tests.push(logger.colors.green(`${summary.aggregates.passed} passed`))
+    }
+    if (summary.aggregates.failed) {
+      tests.push(logger.colors.red(`${summary.aggregates.failed} failed`))
+    }
+    if (summary.aggregates.todo) {
+      tests.push(logger.colors.cyan(`${summary.aggregates.todo} todo`))
+    }
+    if (summary.aggregates.skipped) {
+      tests.push(logger.colors.yellow(`${summary.aggregates.skipped} skipped`))
+    }
+    if (summary.aggregates.regression) {
+      tests.push(logger.colors.magenta(`${summary.aggregates.regression} regression`))
     }
 
-    if (summary.hasError) {
-      console.log(logger.colors.bgRed().black(' FAILED '))
-    } else {
-      console.log(logger.colors.bgGreen().black(' PASSED '))
-    }
-    console.log('')
-
-    const aggregatesWhiteSpace = summary.aggregates.uncaughtExceptions ? 19 : 10
-
-    this.printAggregate('total', summary.aggregates.total, aggregatesWhiteSpace)
-    this.printAggregate('failed', summary.aggregates.failed, aggregatesWhiteSpace)
-    this.printAggregate('passed', summary.aggregates.passed, aggregatesWhiteSpace)
-    this.printAggregate('todo', summary.aggregates.todo, aggregatesWhiteSpace)
-    this.printAggregate('skipped', summary.aggregates.skipped, aggregatesWhiteSpace)
-    this.printAggregate('regression', summary.aggregates.regression, aggregatesWhiteSpace)
-    this.printAggregate(
-      'uncaught exceptions',
-      summary.aggregates.uncaughtExceptions,
-      aggregatesWhiteSpace
+    const keysPadding = summary.aggregates.uncaughtExceptions ? 19 : 5
+    this.printKeyValuePair(
+      'Tests',
+      `${tests.join(', ')} ${logger.colors.dim(`(${summary.aggregates.total})`)}`,
+      keysPadding
     )
-    this.printAggregate('duration', ms(summary.duration), aggregatesWhiteSpace)
+    this.printKeyValuePair('Time', time.join(''), keysPadding)
 
+    if (summary.aggregates.uncaughtExceptions) {
+      this.printKeyValuePair(
+        'Uncaught exceptions',
+        logger.colors.red(String(summary.aggregates.uncaughtExceptions)),
+        keysPadding
+      )
+    }
+  }
+
+  /**
+   * Pretty print errors
+   */
+  private async printErrors(summary: ReturnType<Runner<any>['getSummary']>) {
     if (summary.failureTree.length || this.uncaughtExceptions.length) {
       console.log('')
       console.log('')
@@ -146,6 +162,28 @@ export abstract class BaseReporter {
      * Uncaught exceptions
      */
     await errorPrinter.printErrors('Uncaught exception', this.uncaughtExceptions)
+  }
+
+  /**
+   * Print tests summary
+   */
+  async printSummary(summary: ReturnType<Runner<any>['getSummary']>) {
+    console.log('')
+
+    if (summary.aggregates.total === 0 && !summary.hasError) {
+      console.log(logger.colors.bgYellow().black(' NO TESTS EXECUTED '))
+      return
+    }
+
+    if (summary.hasError) {
+      console.log(logger.colors.bgRed().black(' FAILED '))
+    } else {
+      console.log(logger.colors.bgGreen().black(' PASSED '))
+    }
+    console.log('')
+
+    this.printAggregates(summary)
+    await this.printErrors(summary)
   }
 
   /**
