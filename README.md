@@ -122,7 +122,7 @@ class SpecReporter extends BaseReporter {
 }
 ```
 
-[github-actions-image]: https://img.shields.io/github/workflow/status/japa/base-reporter/test?style=for-the-badge
+[github-actions-image]: https://img.shields.io/github/actions/workflow/status/japa/base-reporter/test.yml?style=for-the-badge
 [github-actions-url]: https://github.com/japa/base-reporter/actions/workflows/test.yml 'github-actions'
 [npm-image]: https://img.shields.io/npm/v/@japa/base-reporter.svg?style=for-the-badge&logo=npm
 [npm-url]: https://npmjs.org/package/@japa/base-reporter 'npm'
