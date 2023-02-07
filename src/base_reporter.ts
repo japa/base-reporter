@@ -1,7 +1,7 @@
 /*
  * @japa/base-reporter
  *
- * (c) Harminder Virk <virk@adonisjs.com>
+ * (c) Japa.dev
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -10,7 +10,7 @@
 import ms from 'ms'
 import { logger } from '@poppinss/cliui'
 import { ErrorsPrinter } from '@japa/errors-printer'
-import type { BaseReporterOptions } from './contracts'
+import type { BaseReporterOptions } from './types'
 import type {
   Emitter,
   Runner,
