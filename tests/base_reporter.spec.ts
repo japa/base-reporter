@@ -23,7 +23,7 @@ import {
   SuiteStartNode,
 } from '@japa/core'
 
-import { BaseReporter } from '../src/base_reporter'
+import { BaseReporter } from '../src/base_reporter.js'
 
 test.group('Base reporter', () => {
   test('extend base reporter to create a custom reporter', async ({ assert }) => {

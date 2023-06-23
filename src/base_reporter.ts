@@ -10,7 +10,7 @@
 import ms from 'ms'
 import { logger } from '@poppinss/cliui'
 import { ErrorsPrinter } from '@japa/errors-printer'
-import type { BaseReporterOptions } from './types'
+import type { BaseReporterOptions } from './types.js'
 import type {
   Emitter,
   Runner,
@@ -34,7 +34,7 @@ export abstract class BaseReporter {
    * Reference to the tests runner. Available after the
    * boot method is invoked
    */
-  runner: Runner<any>
+  runner!: Runner<any>
 
   /**
    * Path to the file for which the tests are getting executed

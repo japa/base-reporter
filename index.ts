@@ -7,5 +7,5 @@
  * file that was distributed with this source code.
  */
 
-export { BaseReporter } from './src/base_reporter'
-export type { BaseReporterOptions } from './src/types'
+export { BaseReporter } from './src/base_reporter.js'
+export type { BaseReporterOptions } from './src/types.js'
