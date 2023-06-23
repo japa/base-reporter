@@ -8,7 +8,7 @@
  */
 
 import ms from 'ms'
-import { logger } from '@poppinss/cliui'
+import { cliui } from '@poppinss/cliui'
 import { ErrorsPrinter } from '@japa/errors-printer'
 import type { BaseReporterOptions } from './types.js'
 import type {
@@ -28,7 +28,8 @@ import type {
  * Base reporter to build custom reporters on top of
  */
 export abstract class BaseReporter {
-  private options: BaseReporterOptions
+  #options: BaseReporterOptions
+  #ui = cliui()
 
   /**
    * Reference to the tests runner. Available after the
@@ -53,7 +54,7 @@ export abstract class BaseReporter {
   uncaughtExceptions: { phase: 'test'; error: Error }[] = []
 
   constructor(options: Partial<BaseReporterOptions> = {}) {
-    this.options = {
+    this.#options = {
       stackLinesCount: options.stackLinesCount || 5,
     }
   }
@@ -61,8 +62,8 @@ export abstract class BaseReporter {
   /**
    * Print the aggregate count
    */
-  private printKeyValuePair(key: string, value: string, whitespaceLength: number) {
-    console.log(`${logger.colors.dim(`${key.padEnd(whitespaceLength + 2)} : `)}${value}`)
+  #printKeyValuePair(key: string, value: string, whitespaceLength: number) {
+    console.log(`${this.#ui.colors.dim(`${key.padEnd(whitespaceLength + 2)} : `)}${value}`)
   }
 
   /**
@@ -83,45 +84,45 @@ export abstract class BaseReporter {
   /**
    * Pretty print aggregates
    */
-  private printAggregates(summary: ReturnType<Runner<any>['getSummary']>) {
+  #printAggregates(summary: ReturnType<Runner<any>['getSummary']>) {
     const [tests, time]: string[][] = [[], []]
 
     /**
      * Set value for time row
      */
-    time.push(logger.colors.dim(ms(summary.duration)))
+    time.push(this.#ui.colors.dim(ms(summary.duration)))
 
     /**
      * Set value for tests row
      */
     if (summary.aggregates.passed) {
-      tests.push(logger.colors.green(`${summary.aggregates.passed} passed`))
+      tests.push(this.#ui.colors.green(`${summary.aggregates.passed} passed`))
     }
     if (summary.aggregates.failed) {
-      tests.push(logger.colors.red(`${summary.aggregates.failed} failed`))
+      tests.push(this.#ui.colors.red(`${summary.aggregates.failed} failed`))
     }
     if (summary.aggregates.todo) {
-      tests.push(logger.colors.cyan(`${summary.aggregates.todo} todo`))
+      tests.push(this.#ui.colors.cyan(`${summary.aggregates.todo} todo`))
     }
     if (summary.aggregates.skipped) {
-      tests.push(logger.colors.yellow(`${summary.aggregates.skipped} skipped`))
+      tests.push(this.#ui.colors.yellow(`${summary.aggregates.skipped} skipped`))
     }
     if (summary.aggregates.regression) {
-      tests.push(logger.colors.magenta(`${summary.aggregates.regression} regression`))
+      tests.push(this.#ui.colors.magenta(`${summary.aggregates.regression} regression`))
     }
 
     const keysPadding = summary.aggregates.uncaughtExceptions ? 19 : 5
-    this.printKeyValuePair(
+    this.#printKeyValuePair(
       'Tests',
-      `${tests.join(', ')} ${logger.colors.dim(`(${summary.aggregates.total})`)}`,
+      `${tests.join(', ')} ${this.#ui.colors.dim(`(${summary.aggregates.total})`)}`,
       keysPadding
     )
-    this.printKeyValuePair('Time', time.join(''), keysPadding)
+    this.#printKeyValuePair('Time', time.join(''), keysPadding)
 
     if (summary.aggregates.uncaughtExceptions) {
-      this.printKeyValuePair(
+      this.#printKeyValuePair(
         'Uncaught exceptions',
-        logger.colors.red(String(summary.aggregates.uncaughtExceptions)),
+        this.#ui.colors.red(String(summary.aggregates.uncaughtExceptions)),
         keysPadding
       )
     }
@@ -130,14 +131,14 @@ export abstract class BaseReporter {
   /**
    * Pretty print errors
    */
-  private async printErrors(summary: ReturnType<Runner<any>['getSummary']>) {
+  async #printErrors(summary: ReturnType<Runner<any>['getSummary']>) {
     if (summary.failureTree.length || this.uncaughtExceptions.length) {
       console.log('')
       console.log('')
     }
 
     const errorPrinter = new ErrorsPrinter({
-      stackLinesCount: this.options.stackLinesCount,
+      stackLinesCount: this.#options.stackLinesCount,
     })
 
     /**
@@ -171,19 +172,19 @@ export abstract class BaseReporter {
     console.log('')
 
     if (summary.aggregates.total === 0 && !summary.hasError) {
-      console.log(logger.colors.bgYellow().black(' NO TESTS EXECUTED '))
+      console.log(this.#ui.colors.bgYellow().black(' NO TESTS EXECUTED '))
       return
     }
 
     if (summary.hasError) {
-      console.log(logger.colors.bgRed().black(' FAILED '))
+      console.log(this.#ui.colors.bgRed().black(' FAILED '))
     } else {
-      console.log(logger.colors.bgGreen().black(' PASSED '))
+      console.log(this.#ui.colors.bgGreen().black(' PASSED '))
     }
     console.log('')
 
-    this.printAggregates(summary)
-    await this.printErrors(summary)
+    this.#printAggregates(summary)
+    await this.#printErrors(summary)
   }
 
   /**
