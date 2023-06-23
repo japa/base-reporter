@@ -7,21 +7,16 @@
  * file that was distributed with this source code.
  */
 
-import { test } from '@japa/runner'
-import {
-  Test,
-  Group,
-  Suite,
-  Runner,
-  Refiner,
-  Emitter,
+import type {
   TestEndNode,
   GroupEndNode,
   GroupOptions,
   SuiteEndNode,
   TestStartNode,
   SuiteStartNode,
-} from '@japa/core'
+} from '@japa/core/types'
+import { test } from '@japa/runner'
+import { Test, Group, Suite, Runner, Refiner, Emitter } from '@japa/core'
 
 import { BaseReporter } from '../src/base_reporter.js'
 

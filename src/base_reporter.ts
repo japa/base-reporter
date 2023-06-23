@@ -11,9 +11,8 @@ import ms from 'ms'
 import { cliui } from '@poppinss/cliui'
 import { ErrorsPrinter } from '@japa/errors-printer'
 import type { BaseReporterOptions } from './types.js'
+import { Emitter, Runner } from '@japa/core'
 import type {
-  Emitter,
-  Runner,
   TestEndNode,
   SuiteEndNode,
   GroupEndNode,
@@ -22,14 +21,13 @@ import type {
   GroupStartNode,
   SuiteStartNode,
   RunnerStartNode,
-} from '@japa/core'
+} from '@japa/core/types'
 
 /**
  * Base reporter to build custom reporters on top of
  */
 export abstract class BaseReporter {
   #options: BaseReporterOptions
-  #ui = cliui()
 
   /**
    * Reference to the tests runner. Available after the
@@ -53,17 +51,32 @@ export abstract class BaseReporter {
    */
   uncaughtExceptions: { phase: 'test'; error: Error }[] = []
 
-  constructor(options: Partial<BaseReporterOptions> = {}) {
-    this.#options = {
-      stackLinesCount: options.stackLinesCount || 5,
-    }
+  constructor(
+    options: Partial<BaseReporterOptions> = {},
+    public ui: ReturnType<typeof cliui> = cliui()
+  ) {
+    this.#options = { stackLinesCount: options.stackLinesCount || 5 }
+  }
+
+  /**
+   * Logger to log messages
+   */
+  get logger() {
+    return this.ui.logger
+  }
+
+  /**
+   * Add colors to console messages
+   */
+  get colors() {
+    return this.ui.colors
   }
 
   /**
    * Print the aggregate count
    */
   #printKeyValuePair(key: string, value: string, whitespaceLength: number) {
-    console.log(`${this.#ui.colors.dim(`${key.padEnd(whitespaceLength + 2)} : `)}${value}`)
+    this.logger.log(`${this.colors.dim(`${key.padEnd(whitespaceLength + 2)} : `)}${value}`)
   }
 
   /**
@@ -90,31 +103,31 @@ export abstract class BaseReporter {
     /**
      * Set value for time row
      */
-    time.push(this.#ui.colors.dim(ms(summary.duration)))
+    time.push(this.colors.dim(ms(summary.duration)))
 
     /**
      * Set value for tests row
      */
     if (summary.aggregates.passed) {
-      tests.push(this.#ui.colors.green(`${summary.aggregates.passed} passed`))
+      tests.push(this.colors.green(`${summary.aggregates.passed} passed`))
     }
     if (summary.aggregates.failed) {
-      tests.push(this.#ui.colors.red(`${summary.aggregates.failed} failed`))
+      tests.push(this.colors.red(`${summary.aggregates.failed} failed`))
     }
     if (summary.aggregates.todo) {
-      tests.push(this.#ui.colors.cyan(`${summary.aggregates.todo} todo`))
+      tests.push(this.colors.cyan(`${summary.aggregates.todo} todo`))
     }
     if (summary.aggregates.skipped) {
-      tests.push(this.#ui.colors.yellow(`${summary.aggregates.skipped} skipped`))
+      tests.push(this.colors.yellow(`${summary.aggregates.skipped} skipped`))
     }
     if (summary.aggregates.regression) {
-      tests.push(this.#ui.colors.magenta(`${summary.aggregates.regression} regression`))
+      tests.push(this.colors.magenta(`${summary.aggregates.regression} regression`))
     }
 
     const keysPadding = summary.aggregates.uncaughtExceptions ? 19 : 5
     this.#printKeyValuePair(
       'Tests',
-      `${tests.join(', ')} ${this.#ui.colors.dim(`(${summary.aggregates.total})`)}`,
+      `${tests.join(', ')} ${this.colors.dim(`(${summary.aggregates.total})`)}`,
       keysPadding
     )
     this.#printKeyValuePair('Time', time.join(''), keysPadding)
@@ -122,7 +135,7 @@ export abstract class BaseReporter {
     if (summary.aggregates.uncaughtExceptions) {
       this.#printKeyValuePair(
         'Uncaught exceptions',
-        this.#ui.colors.red(String(summary.aggregates.uncaughtExceptions)),
+        this.colors.red(String(summary.aggregates.uncaughtExceptions)),
         keysPadding
       )
     }
@@ -133,8 +146,8 @@ export abstract class BaseReporter {
    */
   async #printErrors(summary: ReturnType<Runner<any>['getSummary']>) {
     if (summary.failureTree.length || this.uncaughtExceptions.length) {
-      console.log('')
-      console.log('')
+      this.logger.log('')
+      this.logger.log('')
     }
 
     const errorPrinter = new ErrorsPrinter({
@@ -169,19 +182,19 @@ export abstract class BaseReporter {
    * Print tests summary
    */
   async printSummary(summary: ReturnType<Runner<any>['getSummary']>) {
-    console.log('')
+    this.logger.log('')
 
     if (summary.aggregates.total === 0 && !summary.hasError) {
-      console.log(this.#ui.colors.bgYellow().black(' NO TESTS EXECUTED '))
+      this.logger.log(this.colors.bgYellow().black(' NO TESTS EXECUTED '))
       return
     }
 
     if (summary.hasError) {
-      console.log(this.#ui.colors.bgRed().black(' FAILED '))
+      this.logger.log(this.colors.bgRed().black(' FAILED '))
     } else {
-      console.log(this.#ui.colors.bgGreen().black(' PASSED '))
+      this.logger.log(this.colors.bgGreen().black(' PASSED '))
     }
-    console.log('')
+    this.logger.log('')
 
     this.#printAggregates(summary)
     await this.#printErrors(summary)
