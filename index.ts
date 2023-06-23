@@ -8,4 +8,3 @@
  */
 
 export { BaseReporter } from './src/base_reporter.js'
-export type { BaseReporterOptions } from './src/types.js'
